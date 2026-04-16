@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python google_drive_organizer.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python google_drive_organizer.py)",
+      "Bash(PYTHONIOENCODING=utf-8 tail -100 organize_report.txt)",
+      "Bash(PYTHONIOENCODING=utf-8 python apply_organization.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python organize_root_files.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python delete_root_files.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python create_ai_folders.py)"
+    ]
+  }
+}

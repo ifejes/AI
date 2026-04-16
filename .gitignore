@@ -1,0 +1,6 @@
+token.json
+credentials.json
+.env
+.env.local
+*.key
+*.pem

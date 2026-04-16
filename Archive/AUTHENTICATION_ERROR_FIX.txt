@@ -1,0 +1,147 @@
+================================================================================
+CISCO CATALYST CENTER - HTTP 401 UNAUTHORIZED HIBA MEGOLDÁSA
+================================================================================
+
+HIBA:
+  [✗] Authentikálási hiba: HTTP 401
+      Válasz: {"message":"Unauthorized"}
+
+MEGOLDÁS: 3 ÚJ DIAGNOSZTIKAI ESZKÖZ
+
+================================================================================
+LÉPÉS 1: DIAGNOSTIC SCRIPT FUTTATÁSA (AJÁNLOTT - 1 PERC)
+================================================================================
+
+Nyiss egy command prompt-ot / PowerShell-t és futtasd:
+
+  python catalyst_center_diagnostic.py
+
+Ez automatikusan tesztel:
+  ✓ Hálózati kapcsolat
+  ✓ API v1 és v2 Basic Auth
+  ✓ Alternative Auth módok
+  ✓ CC verzió
+  ✓ Site-ok hozzáférés
+
+A script megmondja, hogy:
+  - Melyik API verzió működik
+  - Milyen authentikációs mód szükséges
+  - Mit próbálj meg következőnek
+
+================================================================================
+LÉPÉS 2: VÁLASZD KI A MEGFELELŐ ÚTMUTATÓT
+================================================================================
+
+Az alábbiak közül választ:
+
+A) GYORS 5 PERCES MEGOLDÁS
+   ➜ Olvasd: SOLVE_401_QUICKLY.md
+   Cél: Azonnal megoldani a problémát egy döntési fa alapján
+
+B) RÉSZLETES HIBAELHÁRÍTÁS
+   ➜ Olvasd: TROUBLESHOOTING_401.md
+   Cél: Megérteni az összes lehetséges okot és megoldást
+
+C) DIAGNOSTIC ESZKÖZ RÉSZLETEI
+   ➜ Olvasd: README_DIAGNOSTIC_TOOLS.md
+   Cél: Megérteni, hogy a diagnostic script mit csinál
+
+================================================================================
+3 LEHETSÉGES KIMENETEL A DIAGNOSTIC UTÁN:
+================================================================================
+
+KIMENETEL 1: ✓ SIKER
+  [✓] CC elérhető: 10.8.11.100
+  [✓] Basic Auth sikeres!
+  → Futtathatod az eredeti scriptet:
+    python catalyst_center_ip_pool_reservation.py
+
+KIMENETEL 2: ✗ HÁLÓZATI HIBA
+  [✗] Nem lehet csatlakozni: 10.8.11.100
+  → Ellenőrizd: ping 10.8.11.100
+  → Firewall/proxy blokkolja?
+  → Valóban 10.8.11.100-e a CC IP?
+
+KIMENETEL 3: ✗ AUTHENTIKÁLÁSI HIBA
+  [!] API v1 - HTTP 401
+  [!] API v2 - HTTP 401
+  → Olvasd: SOLVE_401_QUICKLY.md vagy TROUBLESHOOTING_401.md
+  → Lehetséges okok:
+    1. Helytelen jelszó
+    2. LDAP/AD authentikáció (próbáld: admin@domain.com)
+    3. Speciális karakterek jelszóban (escape-elés szükséges)
+    4. API hozzáférés korlátozva a User & Roles-ban
+
+================================================================================
+GYORS ELLENŐRZÉSI LISTA:
+================================================================================
+
+☐ Diagnostic script letöltve: catalyst_center_diagnostic.py
+☐ Diagnostic script futtatva: python catalyst_center_diagnostic.py
+☐ Output megfelel a kimeneteli leírásoknak
+☐ Megfelelő útmutató olvasva (SOLVE_401... vagy TROUBLESHOOTING_401...)
+☐ Javaslatokat követtem
+☐ Admin web felületre bejelentkeztem: https://10.8.11.100
+☐ LDAP/LOCAL felhasználó típusa ellenőrizve
+☐ Jelszó helyessége tesztelem
+☐ Új admin felhasználó létrehozva (ha szükséges, alphanumerikus jelszóval)
+☐ Diagnostic újra futtatva
+☐ Eredeti script futtatva: python catalyst_center_ip_pool_reservation.py
+
+================================================================================
+FÁJLOK GYORS REFERENCIA:
+================================================================================
+
+DIAGNOSZTIKA:
+  catalyst_center_diagnostic.py         - Automatikus diagnosztika (RUN FIRST!)
+  
+ÚTMUTATÓK:
+  SOLVE_401_QUICKLY.md                  - ⚡ Gyors 5 perces megoldás
+  TROUBLESHOOTING_401.md                - 📖 Részletes útmutató, 6 lehetséges ok
+  README_DIAGNOSTIC_TOOLS.md            - 🔧 Diagnostic eszköz referencia
+  
+EREDETI SCRIPT (FRISSÍTETT):
+  catalyst_center_ip_pool_reservation.py - IP pool reserválása
+  
+EGYÉB:
+  requirements.txt                       - Python függőségek
+  config_example.py                      - Konfigurációs sablonok
+
+================================================================================
+LEHETSÉGES OKOK ÉS MEGOLDÁSOK - RÖVID ÖSSZEFOGLALÁS:
+================================================================================
+
+OK #1: HELYTELEN JELSZÓ (LEGVALÓSZÍNŰBB)
+  └─ Megoldás: Próbálkozz manuális bejelentkezéssel: https://10.8.11.100
+
+OK #2: LDAP/AD AUTHENTIKÁCIÓ
+  └─ Megoldás: Próbáld: admin@domain.com vagy DOMAIN\admin
+
+OK #3: SPECIÁLIS KARAKTEREK JELSZÓBAN
+  └─ Megoldás: Hozz létre új admin (csak betűk és számok)
+
+OK #4: API VERZIÓ ELTÉRÉS
+  └─ Megoldás: Diagnostic automatikusan teszteli v1 és v2-t
+
+OK #5: API HOZZÁFÉRÉS KORLÁTOZVA
+  └─ Megoldás: Admin felület → System → User & Roles
+
+OK #6: CC VERZIÓ PROBLÉMA
+  └─ Megoldás: Ellenőrizd a verzióját és a naplókat
+
+================================================================================
+HATALMAS SIKERT! 🚀
+================================================================================
+
+Ne verzz, ezek az eszközök automatikusan diagnosztizálják a problémádat.
+
+MOST:
+1. Futtasd: python catalyst_center_diagnostic.py
+2. Olvasd az outputot
+3. Kövesd a javaslatokat
+4. Futtasd az eredeti scriptet
+
+HA MÉG MINDIG NEM MŰKÖDIK:
+→ Olvasd el: TROUBLESHOOTING_401.md
+
+================================================================================

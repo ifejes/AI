@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco 9800 WLC Interfészek Tutoriál</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .intro-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 40px;
+            border-radius: 5px;
+        }
+
+        .intro-section h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+
+        .interfaces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .interface-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .interface-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .interface-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .interface-content {
+            padding: 25px;
+        }
+
+        .interface-content h3 {
+            color: #1e3c72;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .interface-content p {
+            margin-bottom: 12px;
+            color: #555;
+        }
+
+        .specs {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .specs strong {
+            color: #1e3c72;
+        }
+
+        .diagram-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .diagram-section h2 {
+            color: #1e3c72;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        .device-diagram {
+            background: white;
+            border: 3px solid #1e3c72;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .device-label {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        .device-body {
+            background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+            border: 2px solid #999;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .port-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .port-group-title {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .port {
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .port.data {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .port.mgmt {
+            background: #fff3e0;
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        .port.console {
+            background: #f3e5f5;
+            border-color: #7b1fa2;
+            color: #7b1fa2;
+        }
+
+        .port.rp {
+            background: #e8f5e9;
+            border-color: #388e3c;
+            color: #388e3c;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        .usage-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .usage-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #555;
+        }
+
+        .usage-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .color-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .legend-box.data {
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
+
+        .legend-box.mgmt {
+            background: #fff3e0;
+            border-color: #f57c00;
+        }
+
+        .legend-box.console {
+            background: #f3e5f5;
+            border-color: #7b1fa2;
+        }
+
+        .legend-box.rp {
+            background: #e8f5e9;
+            border-color: #388e3c;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #fbc02d;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #666;
+        }
+
+        .note strong {
+            color: #f57c00;
+        }
+
+        footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .interfaces-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .comparison-table {
+                font-size: 0.9em;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Cisco 9800 WLC Interfészek</h1>
+            <p>Részletes Tutoriál a Wireless LAN Controller Interfészeiről</p>
+        </header>
+
+        <div class="content">
+            <!-- Bevezető szekció -->
+            <div class="intro-section">
+                <h2>📋 Tudnivalók</h2>
+                <p>A Cisco 9800-as széria Wireless LAN Controllerek különféle interfészekkel rendelkeznek, amelyek eltérő funkciókat töltenek be a hálózati infrastruktúrában. Ezek az interfészek biztosítják a vezeték nélküli forgalom kezelését, az irányítást, a felügyeletet és a konzolos hozzáférést. Az alábbi tutoriálban részletesen bemutatjuk az egyes interfészek jellemzőit és felhasználási módjait.</p>
+            </div>
+
+            <!-- Interfészek kártya nézete -->
+            <div class="interfaces-grid">
+                <!-- Data Interfész -->
+                <div class="interface-card">
+                    <div class="interface-header">📡 Data Interfész</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>A vezeték nélküli forgalom elsődleges csatornája a WLC és az Access Pointok között.</p>
+
+                        <div class="specs">
+                            <strong>Port típus:</strong> Ethernet<br>
+                            <strong>Alapértelmezett VLAN:</strong> Management VLAN<br>
+                            <strong>Sebesség:</strong> 1 Gbps, 10 Gbps (típustól függően)<br>
+                            <strong>Protokoll:</strong> LWAPP/CAPWAP
+                        </div>
+
+                        <h3>Felhasználás:</h3>
+                        <ul class="usage-list">
+                            <li>Wireless forgalom szállítása</li>
+                            <li>AP descobery és kommunikáció</li>
+                            <li>Kontroller - AP LWAPP/CAPWAP csatorna</li>
+                            <li>Guest Wireless forgalom</li>
+                        </ul>
+
+                        <h3>Típikus konfiguráció:</h3>
+                        <p><code>interface GigabitEthernet0/0/0</code></p>
+                    </div>
+                </div>
+
+                <!-- Management Interfész -->
+                <div class="interface-card">
+                    <div class="interface-header">⚙️ Management Interfész</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>A WLC távoli felügyelete és konfigurálása céljára használt interfész.</p>
+
+                        <div class="specs">
+                            <strong>Port típus:</strong> Ethernet<br>
+                            <strong>IP protokoll:</strong> IPv4/IPv6<br>
+                            <strong>Alapértelmezett protokoll:</strong> HTTPS (TCP 443), SSH (TCP 22)<br>
+                            <strong>Sebesség:</strong> 1 Gbps
+                        </div>
+
+                        <h3>Felhasználás:</h3>
+                        <ul class="usage-list">
+                            <li>Web GUI hozzáférés (HTTPS)</li>
+                            <li>SSH, Telnet parancssor</li>
+                            <li>SNMP monitoring</li>
+                            <li>Syslog küldés</li>
+                            <li>NTP szinkronizáció</li>
+                        </ul>
+
+                        <h3>Típikus konfiguráció:</h3>
+                        <p><code>interface Vlan1</code></p>
+                    </div>
+                </div>
+
+                <!-- RP Interfész -->
+                <div class="interface-card">
+                    <div class="interface-header">🔄 RP (Route Processor) Interfész</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>A Route Processor és Switch Fabric között teremt kommunikációt redundancia esetén.</p>
+
+                        <div class="specs">
+                            <strong>Port típus:</strong> Speciális összeköttetés<br>
+                            <strong>Általános név:</strong> RP port<br>
+                            <strong>Felhasználás:</strong> Magas rendelkezésre állás (High Availability)<br>
+                            <strong>Redundancia:</strong> Aktív-Standby konfigurációban
+                        </div>
+
+                        <h3>Felhasználás:</h3>
+                        <ul class="usage-list">
+                            <li>Kontroller redundancia</li>
+                            <li>Standby WLC szinkronizáció</li>
+                            <li>Stateless switchover</li>
+                            <li>HA párok közötti adatcsere</li>
+                        </ul>
+
+                        <h3>Megjegyzés:</h3>
+                        <p>Az újabb 9800-as WLC-kben ezt az interfészt gyakran belső kommunikációra használják, és nem közvetlenül konfigurálható.</p>
+                    </div>
+                </div>
+
+                <!-- Console Port -->
+                <div class="interface-card">
+                    <div class="interface-header">🖥️ Console Port</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>Fizikai közvetlen hozzáférés a WLC-hez eszköz-összeköttetésen keresztül.</p>
+
+                        <div class="specs">
+                            <strong>Port típus:</strong> RJ-45 (USB vagy soros)<br>
+                            <strong>Sebessége:</strong> 9600 baud<br>
+                            <strong>Protokoll:</strong> VT100 soros terminál<br>
+                            <strong>Kábel:</strong> Rollover (Cisco soros kábel)
+                        </div>
+
+                        <h3>Felhasználás:</h3>
+                        <ul class="usage-list">
+                            <li>Alapvetö konfigurálás (first-time setup)</li>
+                            <li>Jelszó helyreállítás</li>
+                            <li>Rendszerbetöltési (boot) folyamat</li>
+                            <li>Hibaelhárítás és diagnosztika</li>
+                        </ul>
+
+                        <h3>Eszközök:</h3>
+                        <p>PuTTY, SecureCRT, Cisco terminal emulator</p>
+                    </div>
+                </div>
+
+                <!-- Service Port (Legacy) -->
+                <div class="interface-card">
+                    <div class="interface-header">🔧 Service Port (Legacy SP)</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>Eredeti vezérlési csatorna - az újabb WLC-kben már ritkán vagy egyáltalán nem használatos.</p>
+
+                        <div class="specs">
+                            <strong>Port típus:</strong> Ethernet (régebbi modellek)<br>
+                            <strong>Célja:</strong> Out-of-band kezelés<br>
+                            <strong>Státusz:</strong> Elavult (Deprecated)<br>
+                            <strong>Helyettesítő:</strong> Management Interfész
+                        </div>
+
+                        <h3>Történeti jellegzetességei:</h3>
+                        <ul class="usage-list">
+                            <li>5500-as és régebbi WLC-ket érinti</li>
+                            <li>Az adatinterfész lezárulása esetén használt fallback</li>
+                            <li>Out-of-band kezelés biztosítása</li>
+                            <li>Jelszó helyreállítás</li>
+                        </ul>
+
+                        <h3>9800-as WLC-kben:</h3>
+                        <p>Ez az interfész gyakorlatilag <strong>nem érhető el</strong> vagy <strong>nem is létezik</strong> a 9800-as szériában.</p>
+                    </div>
+                </div>
+
+                <!-- Redundancia Portok -->
+                <div class="interface-card">
+                    <div class="interface-header">🔗 Redundancia/HA Portok</div>
+                    <div class="interface-content">
+                        <h3>Funkció:</h3>
+                        <p>High Availability (HA) konfigurációban az aktív és standby WLC-k közötti szinkronizáció.</p>
+
+                        <div class="specs">
+                            <strong>Szükséges:</strong> Legalább 2 db WLC<br>
+                            <strong>Konfiguráció:</strong> Aktív-Standby mód<br>
+                            <strong>Szinkronizáció:</strong> Valós idejű<br>
+                            <strong>Failover idő:</strong> Szubmásodperces
+                        </div>
+
+                        <h3>Felhasználás:</h3>
+                        <ul class="usage-list">
+                            <li>WLC kontroller redundancia</li>
+                            <li>Access Point csatlakozási lista szinkronizálása</li>
+                            <li>Konfigurációs adatok szinkronizálása</li>
+                            <li>Seamless failover biztosítása</li>
+                        </ul>
+
+                        <h3>Hálózati megkövetelmények:</h3>
+                        <p>Dedikált, alacsony latenciájú csatorna (< 5ms ajánlott)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagram szekció -->
+            <div class="diagram-section">
+                <h2>Fizikai Interfész Elrendezés</h2>
+
+                <div class="device-diagram">
+                    <div class="device-label">Cisco 9800-40 WLC - Előnézet</div>
+
+                    <div class="device-body">
+                        <div class="port-group">
+                            <div class="port-group-title">Console & Management Portok</div>
+                            <div>
+                                <span class="port console">Console (RJ-45)</span>
+                                <span class="port mgmt">Mgmt Ethernet</span>
+                            </div>
+                        </div>
+
+                        <div class="port-group">
+                            <div class="port-group-title">Adat & Hálózati Portok</div>
+                            <div>
+                                <span class="port data">GE 0/0/0</span>
+                                <span class="port data">GE 0/0/1</span>
+                                <span class="port data">GE 0/0/2</span>
+                                <span class="port data">GE 0/0/3</span>
+                            </div>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">Data Interfészek (LWAPP/CAPWAP)</p>
+                        </div>
+
+                        <div class="port-group">
+                            <div class="port-group-title">Opcionális Portok (típustól függően)</div>
+                            <div>
+                                <span class="port rp">RP Port</span>
+                                <span class="port mgmt">10G Interface</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-legend">
+                    <div class="legend-item">
+                        <div class="legend-box data"></div>
+                        <span><strong>Data Interfész</strong> - Wireless forgalom</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box mgmt"></div>
+                        <span><strong>Management</strong> - Vezérlés és felügyelet</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box console"></div>
+                        <span><strong>Console</strong> - Fizikai hozzáférés</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box rp"></div>
+                        <span><strong>RP/HA</strong> - Redundancia</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Összehasonlító Táblázat -->
+            <div class="diagram-section">
+                <h2>Interfészek Összehasonlítása</h2>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Interfész</th>
+                            <th>Típusa</th>
+                            <th>Sebesség</th>
+                            <th>Funkció</th>
+                            <th>Kritikalitás</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Data Interfész</strong></td>
+                            <td>Ethernet (1G/10G)</td>
+                            <td>1 Gbps / 10 Gbps</td>
+                            <td>Wireless forgalom, AP kommunikáció</td>
+                            <td style="color: #d32f2f;"><strong>Kritikus</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Management Interfész</strong></td>
+                            <td>Ethernet (VLAN)</td>
+                            <td>1 Gbps</td>
+                            <td>WLC vezérlés, Web GUI, SSH</td>
+                            <td style="color: #d32f2f;"><strong>Kritikus</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Console Port</strong></td>
+                            <td>RJ-45 / USB</td>
+                            <td>9600 baud</td>
+                            <td>Fizikai hozzáférés, hibaelhárítás</td>
+                            <td style="color: #f57c00;"><strong>Magas</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>RP/HA Interfész</strong></td>
+                            <td>Speciális / Ethernet</td>
+                            <td>Változó</td>
+                            <td>Redundancia, szinkronizáció</td>
+                            <td style="color: #f57c00;"><strong>Magas</strong> (HA-ban)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Service Port (SP)</strong></td>
+                            <td>Ethernet (Legacy)</td>
+                            <td>1 Gbps</td>
+                            <td>Out-of-band kezelés (elavult)</td>
+                            <td style="color: #757575;"><strong>Elavult</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Konfigurációs példák -->
+            <div class="diagram-section">
+                <h2>⚙️ Konfigurációs Útmutató</h2>
+
+                <h3 style="color: #1e3c72; margin: 20px 0 15px 0;">Data Interfész Konfigurálása</h3>
+                <div style="background: #1e3c72; color: #fff; padding: 15px; border-radius: 5px; font-family: monospace; text-align: left; overflow-x: auto;">
+configure terminal<br>
+interface GigabitEthernet0/0/0<br>
+&nbsp;no shutdown<br>
+&nbsp;exit<br>
+wlan 1<br>
+&nbsp;ssid MyNetwork<br>
+&nbsp;security wpa2 psk set MyPassword<br>
+&nbsp;exit
+                </div>
+
+                <h3 style="color: #1e3c72; margin: 20px 0 15px 0;">Management Interfész Konfigurálása</h3>
+                <div style="background: #1e3c72; color: #fff; padding: 15px; border-radius: 5px; font-family: monospace; text-align: left; overflow-x: auto;">
+configure terminal<br>
+interface vlan 1<br>
+&nbsp;ip address 192.168.1.100 255.255.255.0<br>
+&nbsp;exit<br>
+ip default-gateway 192.168.1.1<br>
+ip name-server 8.8.8.8 8.8.4.4
+                </div>
+
+                <h3 style="color: #1e3c72; margin: 20px 0 15px 0;">High Availability Konfigurálása</h3>
+                <div style="background: #1e3c72; color: #fff; padding: 15px; border-radius: 5px; font-family: monospace; text-align: left; overflow-x: auto;">
+configure terminal<br>
+redundancy<br>
+&nbsp;mode sso<br>
+&nbsp;peer ip address 192.168.1.101<br>
+&nbsp;exit
+                </div>
+            </div>
+
+            <!-- Hasznos Megjegyzések -->
+            <div class="note">
+                <strong>💡 Hasznos Tipp:</strong> A 9800-as WLC-kben a régebbi Service Port (SP) már nem létezik. Az összes vezérlési funkció a Management Interfészen keresztül történik, amely nagyobb biztonságot és rugalmasságot nyújt.
+            </div>
+
+            <div class="note">
+                <strong>⚠️ Figyelem:</strong> A Data Interfész és Management Interfész szegregációja erősen ajánlott. Ez biztosítja, hogy az Access Pointok wireless forgalma ne zavarjon be az adminisztratív kommunikációba.
+            </div>
+
+            <div class="note">
+                <strong>🔒 Biztonsági Tanács:</strong> Mindig erős jelszavakat használjon a Management Interfészhez való hozzáféréshez, és tiltsa le a Telnet protokollt az SSH javára. A Console Port físz biztonságáról is gondoskodjon.
+            </div>
+
+            <div class="diagram-section">
+                <h2>Hálózati Topológia Ábra</h2>
+                <svg viewBox="0 0 900 500" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 5px;">
+                    <!-- WLC Device -->
+                    <rect x="350" y="50" width="200" height="120" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+                    <text x="450" y="85" text-anchor="middle" font-size="16" font-weight="bold" fill="#1976d2">Cisco 9800 WLC</text>
+
+                    <!-- Ports -->
+                    <circle cx="385" cy="130" r="8" fill="#1976d2"/>
+                    <text x="385" y="160" text-anchor="middle" font-size="12">Data-0</text>
+
+                    <circle cx="430" cy="130" r="8" fill="#1976d2"/>
+                    <text x="430" y="160" text-anchor="middle" font-size="12">Data-1</text>
+
+                    <circle cx="475" cy="130" r="8" fill="#f57c00"/>
+                    <text x="475" y="160" text-anchor="middle" font-size="12">Mgmt</text>
+
+                    <circle cx="520" cy="130" r="8" fill="#7b1fa2"/>
+                    <text x="520" y="160" text-anchor="middle" font-size="12">Console</text>
+
+                    <!-- Access Points -->
+                    <rect x="80" y="280" width="120" height="80" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+                    <text x="140" y="310" text-anchor="middle" font-size="14" font-weight="bold">Access Point 1</text>
+                    <text x="140" y="330" text-anchor="middle" font-size="12">192.168.1.10</text>
+                    <circle cx="140" cy="355" r="6" fill="#1976d2"/>
+
+                    <rect x="340" y="280" width="120" height="80" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+                    <text x="400" y="310" text-anchor="middle" font-size="14" font-weight="bold">Access Point 2</text>
+                    <text x="400" y="330" text-anchor="middle" font-size="12">192.168.1.20</text>
+                    <circle cx="400" cy="355" r="6" fill="#1976d2"/>
+
+                    <rect x="600" y="280" width="120" height="80" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+                    <text x="660" y="310" text-anchor="middle" font-size="14" font-weight="bold">Access Point 3</text>
+                    <text x="660" y="330" text-anchor="middle" font-size="12">192.168.1.30</text>
+                    <circle cx="660" cy="355" r="6" fill="#1976d2"/>
+
+                    <!-- Management Network -->
+                    <rect x="700" y="50" width="150" height="80" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+                    <text x="775" y="75" text-anchor="middle" font-size="14" font-weight="bold">Management</text>
+                    <text x="775" y="100" text-anchor="middle" font-size="12">Network / Admin PC</text>
+
+                    <!-- Lines (Data) -->
+                    <line x1="385" y1="130" x2="140" y2="280" stroke="#1976d2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="430" y1="130" x2="400" y2="280" stroke="#1976d2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="430" y1="130" x2="660" y2="280" stroke="#1976d2" stroke-width="2" stroke-dasharray="5,5"/>
+
+                    <!-- Line (Management) -->
+                    <line x1="475" y1="130" x2="775" y2="130" stroke="#f57c00" stroke-width="2"/>
+
+                    <!-- Labels -->
+                    <text x="50" y="450" font-size="12" fill="#666">LWAPP/CAPWAP forgalom (Data)</text>
+                    <circle cx="40" cy="445" r="4" fill="#1976d2"/>
+
+                    <text x="50" y="480" font-size="12" fill="#666">Management forgalom</text>
+                    <line x1="40" y1="475" x2="60" y2="475" stroke="#f57c00" stroke-width="2"/>
+
+                    <text x="350" y="480" font-size="12" fill="#666">Wireless Clients csatlakoznak az AP-khoz</text>
+                </svg>
+            </div>
+
+            <div class="diagram-section">
+                <h2>📚 Összegzés</h2>
+                <p style="text-align: left; margin: 20px 0;">A Cisco 9800 WLC interfészeinek megértése kulcsfontosságú a stabil és biztonságos vezeték nélküli hálózat üzemeltetéséhez:</p>
+
+                <ul class="usage-list" style="text-align: left;">
+                    <li><strong>Data Interfész:</strong> A vezeték nélküli forgalom gerincét képezi</li>
+                    <li><strong>Management Interfész:</strong> Lehetővé teszi a WLC táv kezelését és monitorozását</li>
+                    <li><strong>Console Port:</strong> Nélkülözhetetlen a kezdeti setup-hoz és hibaelhárításhoz</li>
+                    <li><strong>RP/HA Interfészek:</strong> Magas rendelkezésre állás biztosítanak</li>
+                    <li><strong>Service Port:</strong> Régebbi WLC-kben használatos, a 9800-asban elavult</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>Cisco 9800 WLC Interfészek Tutoriál | © 2026 | Készült a teljes körű hálózati ismeretszerzéshez</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Az információk a Cisco официальной dokumentációja alapján készültek.</p>
+        </footer>
+    </div>
+</body>
+</html>

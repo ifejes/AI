@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cisco Wireless Architectúra – IOS-XE WLC & Catalyst Center</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0b0e14;
+  --bg2:       #111620;
+  --bg3:       #171d2b;
+  --border:    #1e2840;
+  --border2:   #2a3755;
+  --cyan:      #00c8e0;
+  --cyan-dim:  #00889a;
+  --blue:      #4a90e2;
+  --green:     #2fd67a;
+  --orange:    #f5a623;
+  --red:       #e05c5c;
+  --purple:    #9b72e8;
+  --text:      #c8d4e8;
+  --text-dim:  #6b7d9e;
+  --text-bright:#e8f0ff;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'IBM Plex Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.4;
+}
+
+/* ── SIDEBAR NAV ── */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 260px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  padding: 0 0 40px;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.sidebar-logo .label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.sidebar-logo .title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  line-height: 1.4;
+}
+
+.nav-section {
+  padding: 8px 0;
+}
+.nav-section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 10px 20px 6px;
+}
+.nav-part {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  border-left: 3px solid var(--cyan);
+  margin: 4px 0;
+  background: rgba(0,200,224,0.05);
+}
+.nav-item {
+  display: block;
+  padding: 5px 20px 5px 28px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+.nav-item:hover {
+  color: var(--text);
+  border-left-color: var(--border2);
+  background: rgba(255,255,255,0.03);
+}
+.nav-item.active {
+  color: var(--cyan);
+  border-left-color: var(--cyan);
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  margin-left: 260px;
+  position: relative; z-index: 1;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0d1420 0%, #0b1628 50%, #060d1a 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 60px 52px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute; right: -60px; top: -60px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,200,224,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.15;
+  margin-bottom: 18px;
+  max-width: 700px;
+}
+.hero h1 span { color: var(--cyan); }
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 600px;
+  line-height: 1.7;
+}
+.hero-tags {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 24px;
+}
+.hero-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.02);
+}
+
+/* ── CONTENT SECTIONS ── */
+.content { padding: 0 60px 80px; }
+
+.part-header {
+  display: flex; align-items: flex-start; gap: 20px;
+  padding: 52px 0 32px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+.part-number {
+  font-family: var(--mono);
+  font-size: 52px;
+  font-weight: 600;
+  color: var(--border2);
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.part-title-block {}
+.part-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.part-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.part-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  max-width: 620px;
+  line-height: 1.65;
+}
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+.section-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 18px;
+  background: var(--cyan);
+  flex-shrink: 0;
+}
+.section-subtitle {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 22px;
+  padding-left: 13px;
+}
+
+/* ── CARDS ── */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 6px 6px 0 0; }
+.card-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 10px;
+}
+.card p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.card ul {
+  list-style: none;
+  margin-top: 10px;
+}
+.card ul li {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  padding: 3px 0;
+  padding-left: 14px;
+  position: relative;
+}
+.card ul li::before {
+  content: '›';
+  position: absolute; left: 0;
+  color: var(--cyan-dim);
+}
+
+/* ── RELATIONSHIP DIAGRAM ── */
+.diagram-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.diagram-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.flow-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 700px;
+  flex-wrap: nowrap;
+}
+.flow-node {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 12px 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.flow-node .fn-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.flow-node .fn-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.flow-arrow {
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+  position: relative;
+  min-width: 24px;
+}
+.flow-arrow::after {
+  content: '▶';
+  position: absolute;
+  right: -6px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 8px;
+  color: var(--border2);
+}
+
+/* ── MAPPING TABLE ── */
+.map-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.map-table th {
+  background: var(--bg3);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border2);
+}
+.map-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.55;
+}
+.map-table tr:last-child td { border-bottom: none; }
+.map-table tr:hover td { background: rgba(255,255,255,0.015); }
+.map-table .td-cc { color: var(--cyan); font-weight: 600; font-family: var(--mono); font-size: 12px; }
+.map-table .td-wlc { color: var(--orange); font-family: var(--mono); font-size: 12px; }
+.map-table .td-desc { color: var(--text-dim); }
+
+/* ── TAG DIAGRAM (AP ← TAGs) ── */
+.ap-diagram {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.ap-box {
+  background: linear-gradient(135deg, #1a2540, #111c30);
+  border: 2px solid var(--blue);
+  border-radius: 8px;
+  padding: 18px 22px;
+  text-align: center;
+  min-width: 120px;
+}
+.ap-box .ap-icon { font-size: 28px; margin-bottom: 8px; }
+.ap-box .ap-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: 600;
+}
+.ap-arrow-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding-top: 10px;
+}
+.ap-arrow {
+  font-size: 20px;
+  color: var(--border2);
+}
+.tags-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tag-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  min-width: 200px;
+}
+.tag-item .t-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.tag-item .t-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.tag-item .t-points {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 5px;
+}
+.arrow-mid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--border2);
+  padding: 0 8px;
+  margin-top: 10px;
+}
+
+/* ── PROFILE CHAIN ── */
+.chain {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.chain-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 14px 18px;
+  flex: 1;
+  min-width: 130px;
+  position: relative;
+}
+.chain-item:first-child { border-radius: 6px 0 0 6px; }
+.chain-item:last-child { border-radius: 0 6px 6px 0; }
+.chain-item + .chain-item { border-left: none; }
+.chain-item .ci-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.chain-item .ci-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.chain-item .ci-desc {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.chain-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--border2);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── CC → WLC SECTION ── */
+.cc-mapping {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+.cc-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cc-item-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.cc-item-header:hover { background: rgba(255,255,255,0.03); }
+.cc-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  letter-spacing: 0.08em;
+}
+.cc-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-bright);
+  flex: 1;
+}
+.cc-item-path {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.cc-toggle {
+  color: var(--text-dim);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.cc-item.open .cc-toggle { transform: rotate(90deg); }
+
+.cc-item-body {
+  display: none;
+  padding: 20px;
+}
+.cc-item.open .cc-item-body { display: block; }
+
+.cc-item-body .desc {
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.65;
+}
+
+.impacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.impact-row {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 14px;
+}
+.impact-row .ir-target {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.impact-row .ir-effect {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.impact-row.high .ir-target { color: var(--orange); }
+.impact-row.med  .ir-target { color: var(--cyan); }
+.impact-row.low  .ir-target { color: var(--green); }
+
+/* ── CALLOUT ── */
+.callout {
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
+  padding: 14px 18px;
+  margin: 18px 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.callout.info  { border-color: var(--blue);   background: rgba(74,144,226,0.07); }
+.callout.warn  { border-color: var(--orange);  background: rgba(245,166,35,0.07); }
+.callout.tip   { border-color: var(--green);   background: rgba(47,214,122,0.07); }
+.callout.note  { border-color: var(--purple);  background: rgba(155,114,232,0.07); }
+.callout strong { color: var(--text-bright); }
+.callout-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.callout.info  .callout-title { color: var(--blue); }
+.callout.warn  .callout-title { color: var(--orange); }
+.callout.tip   .callout-title { color: var(--green); }
+.callout.note  .callout-title { color: var(--purple); }
+
+/* ── CODE ── */
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--cyan);
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--border2), transparent);
+  margin: 40px 0;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .hero, .content { padding-left: 24px; padding-right: 24px; }
+}
+
+/* ── SUMMARY BOX ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.sg-cell {
+  background: var(--bg2);
+  padding: 16px 18px;
+}
+.sg-cell .sg-cc {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 4px;
+}
+.sg-cell .sg-arrow {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: 3px 0;
+}
+.sg-cell .sg-wlc {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--orange);
+}
+
+/* Animate sections in */
+.section { animation: fadeUp 0.4s ease both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="label">Cisco Wireless</div>
+    <div class="title">IOS-XE WLC &amp;<br>Catalyst Center</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Tartalom</div>
+    <div class="nav-part">① IOS-XE WLC Architektúra</div>
+    <a class="nav-item" href="#wlc-overview">Áttekintés</a>
+    <a class="nav-item" href="#wlan-profile">WLAN Profile</a>
+    <a class="nav-item" href="#policy-profile">Policy Profile</a>
+    <a class="nav-item" href="#policy-tag">Policy TAG</a>
+    <a class="nav-item" href="#site-tag">Site TAG</a>
+    <a class="nav-item" href="#rf-tag">RF TAG</a>
+    <a class="nav-item" href="#ap-join">AP Join Profile</a>
+    <a class="nav-item" href="#flex-profile">Flex Profile</a>
+    <a class="nav-item" href="#rf-profile">RF Profile</a>
+    <a class="nav-item" href="#ap-kapcsolat">AP kapcsolat</a>
+
+    <div class="nav-part">② Catalyst Center</div>
+    <a class="nav-item" href="#cc-overview">Áttekintés</a>
+    <a class="nav-item" href="#cc-ssid">SSID konfiguráció</a>
+    <a class="nav-item" href="#cc-netprofile">Network Profile</a>
+    <a class="nav-item" href="#cc-rfprofile">RF Profile</a>
+    <a class="nav-item" href="#cc-apjoin">AP Join Profile</a>
+    <a class="nav-item" href="#cc-flex">FlexConnect</a>
+    <a class="nav-item" href="#cc-provision">Provision hatások</a>
+    <a class="nav-item" href="#cc-matrix">Összefoglaló mátrix</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════════════════ -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Műszaki Referenciadokumentum</div>
+  <h1>Cisco Wireless <span>Architektúra</span><br>& Kapcsolatrendszer</h1>
+  <p class="hero-sub">
+    Átfogó útmutató az IOS-XE alapú Wireless LAN Controller profilstruktúrájáról, 
+    a TAG-alapú AP konfigurációs modellről, valamint a Catalyst Center wireless 
+    beállításainak WLC-re gyakorolt hatásáról.
+  </p>
+  <div class="hero-tags">
+    <span class="hero-tag">IOS-XE 17.x</span>
+    <span class="hero-tag">Catalyst Center 2.3+</span>
+    <span class="hero-tag">9800 WLC</span>
+    <span class="hero-tag">CAPWAP</span>
+    <span class="hero-tag">FlexConnect</span>
+    <span class="hero-tag">SDA Wireless</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════════════════════
+     PART 1 – IOS-XE WLC
+══════════════════════════════════════════════════════ -->
+<div class="part-header" id="wlc-overview">
+  <div class="part-number">01</div>
+  <div class="part-title-block">
+    <div class="part-eyebrow">Első rész</div>
+    <div class="part-title">IOS-XE WLC Profilarchitektúra</div>
+    <p class="part-desc">
+      A Cisco IOS-XE alapú Wireless LAN Controller (pl. Catalyst 9800 sorozat) egy TAG-alapú 
+      konfigurációs modellt használ. Az SSID-k, hálózati házirendek és AP-beállítások 
+      különálló profilokban kerülnek definiálásra, amelyeket TAG-ek kötnek össze és rendelnek 
+      az AP-khez. Ez a modell rendkívül rugalmas és skálázható.
+    </p>
+  </div>
+</div>
+
+<!-- SSID / WLAN PROFILE -->
+<div class="section" id="wlan-profile">
+  <div class="section-title">WLAN Profile (SSID definíció)</div>
+  <div class="section-subtitle">A WLAN Profile magát az SSID-t és annak logikai tulajdonságait definiálja</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--cyan)"></div>
+      <div class="card-label" style="color:var(--cyan)">Tartalom</div>
+      <h3>WLAN Profile beállításai</h3>
+      <ul>
+        <li>SSID neve (broadcast név)</li>
+        <li>WLAN ID (1–512)</li>
+        <li>802.11 biztonsági mód (Open, WPA2-PSK, WPA3, 802.1X)</li>
+        <li>PMF (Protected Management Frames)</li>
+        <li>MAC szűrés</li>
+        <li>SSID broadcast engedélyezése/tiltása</li>
+        <li>Max. kliens szám</li>
+        <li>Session timeout</li>
+        <li>Idle timeout</li>
+        <li>Webauth / Guest paraméterek</li>
+        <li>Band steering beállítás</li>
+        <li>BSS Transition (802.11v)</li>
+        <li>OKC / 802.11r (Fast Roaming)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--blue)"></div>
+      <div class="card-label" style="color:var(--blue)">Kapcsolat</div>
+      <h3>Hogyan kapcsolódik más elemekhez?</h3>
+      <ul>
+        <li>A WLAN Profile <strong>önmagában nem aktív</strong> – Policy Profile-lal kell párosítani</li>
+        <li>A párosítás a <strong>Policy TAG</strong>-ben történik</li>
+        <li>Egy WLAN Profile több Policy TAG-hez is rendelhető</li>
+        <li>Egy Policy TAG-hez max. 16 WLAN-Policy pár rendelhető</li>
+        <li>Az AP-n csak akkor aktív az SSID, ha az AP-nek van Policy TAG-je</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--green)"></div>
+      <div class="card-label" style="color:var(--green)">CLI elérés</div>
+      <h3>Konfiguráció</h3>
+      <ul>
+        <li><code>wireless profile policy &lt;name&gt;</code></li>
+        <li>GUI: Configuration → Tags &amp; Profiles → WLANs</li>
+        <li>A WLAN Profile-ban <em>NEM</em> konfigurálható VLAN</li>
+        <li>A VLAN a Policy Profile-ban kerül megadásra</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">📌 Fontos megkülönböztetés</div>
+    A WLAN Profile <strong>csak az SSID logikai azonosítóját és biztonsági paramétereit</strong> tartalmazza. 
+    A hálózati házirendet (VLAN, QoS, ACL, mobilitás) a hozzá tartozó <strong>Policy Profile</strong> határozza meg. 
+    Ez a szétválasztás teszi lehetővé, hogy ugyanaz az SSID különböző helyszíneken eltérő VLAN-on működjön.
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- POLICY PROFILE -->
+<div class="section" id="policy-profile">
+  <div class="section-title">Policy Profile</div>
+  <div class="section-subtitle">A hálózati házirendet, VLAN-t és forgalomkezelési beállításokat tartalmazza</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--orange)"></div>
+      <div class="card-label" style="color:var(--orange)">Tartalom</div>
+      <h3>Policy Profile beállításai</h3>
+      <ul>
+        <li><strong>VLAN / VLAN Group</strong> hozzárendelés</li>
+        <li>Central / Local switching mód</li>
+        <li>Central / Local DHCP</li>
+        <li>Central / Local authentication</li>
+        <li>QoS upstream/downstream policy</li>
+        <li>ACL (IPv4, IPv6, URL)</li>
+        <li>AVC profil</li>
+        <li>Mobility Anchor beállítás</li>
+        <li>mDNS Service Policy</li>
+        <li>DHCP Required beállítás</li>
+        <li>IPv6 multicast beállítások</li>
+        <li>Umbrella DNS profil</li>
+        <li>CWA (Central Web Auth) beállítás</li>
+        <li>Kliens klaszter neve</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--purple)"></div>
+      <div class="card-label" style="color:var(--purple)">FlexConnect kapcsolat</div>
+      <h3>Flex-specifikus beállítások</h3>
+      <ul>
+        <li>Local Switching engedélyezése FlexConnect módban</li>
+        <li>VLAN Central Switching override</li>
+        <li>Flex ACL alkalmazás</li>
+        <li>NAT-PAT beállítás</li>
+        <li>Split tunneling konfiguráció</li>
+        <li>Offline (standalone) viselkedés</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--red)"></div>
+      <div class="card-label" style="color:var(--red)">Kapcsolat más elemekhez</div>
+      <h3>Összefüggések</h3>
+      <ul>
+        <li>WLAN Profile + Policy Profile → <strong>Policy TAG</strong>-ban párosítva</li>
+        <li>Egy Policy Profile több WLAN Profile-hoz is tartozhat</li>
+        <li>Egy WLAN Profile-hoz különböző helyszíneken más-más Policy Profile rendelhető</li>
+        <li>A Policy Profile <strong>nem tartalmaz rádió-beállításokat</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- POLICY TAG -->
+<div class="section" id="policy-tag">
+  <div class="section-title">Policy TAG</div>
+  <div class="section-subtitle">Az SSID-t és a házirendet összekapcsolja, majd az AP-hoz rendeli</div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚡ Kulcselem</div>
+    A Policy TAG az IOS-XE WLC architektúra <strong>egyik legfontosabb eleme</strong>. 
+    Ez tartalmazza a WLAN Profile ↔ Policy Profile párokat, és ez kerül közvetlenül az AP-hoz rendelésre. 
+    Amíg egy AP-hoz nincs Policy TAG rendelve, addig az AP egyetlen SSID-t sem sugároz.
+  </div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Policy TAG belső struktúrája</div>
+    <div style="overflow-x:auto">
+    <table class="map-table">
+      <thead>
+        <tr>
+          <th>Policy TAG neve</th>
+          <th>WLAN Profile</th>
+          <th>Policy Profile</th>
+          <th>Megjegyzés</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-cc">PT-campus-main</td>
+          <td class="td-wlc">SSID-CorpData</td>
+          <td class="td-wlc">PP-vlan10-corp</td>
+          <td class="td-desc">Dolgozói SSID → VLAN 10</td>
+        </tr>
+        <tr>
+          <td class="td-cc">PT-campus-main</td>
+          <td class="td-wlc">SSID-Guest</td>
+          <td class="td-wlc">PP-vlan99-guest</td>
+          <td class="td-desc">Vendég SSID → VLAN 99</td>
+        </tr>
+        <tr>
+          <td class="td-cc">PT-campus-main</td>
+          <td class="td-wlc">SSID-IoT</td>
+          <td class="td-wlc">PP-vlan50-iot</td>
+          <td class="td-desc">IoT SSID → VLAN 50</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:8px;">
+      → Egy Policy TAG max. 16 WLAN-Policy párt tartalmazhat. Az AP-hoz rendelt Policy TAG határozza meg, 
+      mely SSID-k és milyen házirenddel aktívak az adott AP-n.
+    </p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--orange)"></div>
+      <div class="card-label" style="color:var(--orange)">Beállítások</div>
+      <h3>Policy TAG tartalma</h3>
+      <ul>
+        <li>Egy vagy több WLAN–Policy Profile pár (max. 16)</li>
+        <li>Az SSID-k engedélyezett rádiói (2.4GHz / 5GHz / 6GHz)</li>
+        <li>Az SSID-k aktív/inaktív állapota</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--cyan)"></div>
+      <div class="card-label" style="color:var(--cyan)">AP hozzárendelés</div>
+      <h3>Hogyan kerül az AP-hoz?</h3>
+      <ul>
+        <li>Közvetlenül: AP konfigurációban <code>tag policy &lt;name&gt;</code></li>
+        <li>Default TAG: minden AP megkapja, ha nincs explicit hozzárendelés</li>
+        <li>Catalyst Center: automatikusan a site alapján</li>
+        <li>AP reboot szükséges TAG csere esetén</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SITE TAG -->
+<div class="section" id="site-tag">
+  <div class="section-title">Site TAG</div>
+  <div class="section-subtitle">Az AP csatlakozási és FlexConnect viselkedési profilját definiálja</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--green)"></div>
+      <div class="card-label" style="color:var(--green)">Tartalom</div>
+      <h3>Site TAG beállításai</h3>
+      <ul>
+        <li><strong>AP Join Profile</strong> hivatkozás (kötelező)</li>
+        <li><strong>Flex Profile</strong> hivatkozás (FlexConnect módhoz)</li>
+        <li>Local Site jelölő (Fabric / non-Fabric)</li>
+        <li>Image download beállítás</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--blue)"></div>
+      <div class="card-label" style="color:var(--blue)">Hatás az AP-ra</div>
+      <h3>Mit határoz meg az AP számára?</h3>
+      <ul>
+        <li>Az AP CAPWAP csatlakozási paraméterei</li>
+        <li>NTP szerver beállítások</li>
+        <li>Syslog szerver</li>
+        <li>TFTP kép szerver</li>
+        <li>Helyi switching szabályok (Flex)</li>
+        <li>VLAN–SSID mapping FlexConnect módban</li>
+        <li>AP csoport neve (ha Flex Profile-ban meg van adva)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--purple)"></div>
+      <div class="card-label" style="color:var(--purple)">Mikor kell Flex Profile?</div>
+      <h3>FlexConnect Site TAG</h3>
+      <ul>
+        <li>Csak akkor szükséges, ha az AP <strong>FlexConnect módban</strong> működik</li>
+        <li>Ha nincs Flex Profile, az AP Central mode-ban működik</li>
+        <li>A Flex Profile tartalmazza a lokális VLAN–SSID leképezést</li>
+        <li>Offline (standalone) működés szabályait is tartalmazza</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 Tipp</div>
+    Ha egy telephelyen az AP-k FlexConnect módban működnek (pl. branch office, ahol a WAN kieshet), 
+    a Site TAG-nek <strong>mindig tartalmaznia kell egy Flex Profile-t</strong>. 
+    A <code>local-site</code> jelölő meghatározza, hogy az AP lokálisan vagy centrálisan kapcsol – 
+    ez kritikus a forgalom útjának szempontjából.
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- RF TAG -->
+<div class="section" id="rf-tag">
+  <div class="section-title">RF TAG</div>
+  <div class="section-subtitle">A rádiófrekve-beállításokat kapcsolja az AP-hoz</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--red)"></div>
+      <div class="card-label" style="color:var(--red)">Tartalom</div>
+      <h3>RF TAG beállításai</h3>
+      <ul>
+        <li><strong>5 GHz RF Profile</strong> hivatkozás</li>
+        <li><strong>2.4 GHz RF Profile</strong> hivatkozás</li>
+        <li><strong>6 GHz RF Profile</strong> hivatkozás (Wi-Fi 6E esetén)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--orange)"></div>
+      <div class="card-label" style="color:var(--orange)">Hatás</div>
+      <h3>Mit határoz meg?</h3>
+      <ul>
+        <li>Csatornasávszélesség (20/40/80/160 MHz)</li>
+        <li>TX teljesítmény min/max értékek</li>
+        <li>RRM (Radio Resource Management) viselkedés</li>
+        <li>Band select / Band steering</li>
+        <li>DFS csatorna engedélyezés</li>
+        <li>Minimum RSSI küszöb</li>
+        <li>Coverage Hole Detection</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- AP JOIN PROFILE -->
+<div class="section" id="ap-join">
+  <div class="section-title">AP Join Profile</div>
+  <div class="section-subtitle">Az AP WLC-hez csatlakozási és üzemi paramétereit definiálja</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--cyan)"></div>
+      <div class="card-label" style="color:var(--cyan)">CAPWAP beállítások</div>
+      <h3>Csatlakozási paraméterek</h3>
+      <ul>
+        <li>WLC elsődleges, másodlagos, harmadlagos IP/neve</li>
+        <li>CAPWAP MTU</li>
+        <li>Heartbeat interval</li>
+        <li>Max. discovery / retransmit időzítők</li>
+        <li>DTLS szállítási titkosítás beállítás</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--blue)"></div>
+      <div class="card-label" style="color:var(--blue)">AP üzemi beállítások</div>
+      <h3>Általános AP konfiguráció</h3>
+      <ul>
+        <li>NTP szerver(ek)</li>
+        <li>Syslog szerver és szint</li>
+        <li>AP CDP engedélyezése</li>
+        <li>SSH / Telnet hozzáférés az AP-hoz</li>
+        <li>AP username/password (local access)</li>
+        <li>TFTP/HTTP image szerver</li>
+        <li>LED mód (enabled/disabled)</li>
+        <li>AP statisztika gyűjtési interval</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--green)"></div>
+      <div class="card-label" style="color:var(--green)">Hol kerül alkalmazásra?</div>
+      <h3>Site TAG-en keresztül</h3>
+      <ul>
+        <li>Az AP Join Profile <strong>a Site TAG-ben</strong> kerül hivatkozásra</li>
+        <li>Az AP a Site TAG-jén keresztül veszi fel ezeket a beállításokat</li>
+        <li>Egy AP Join Profile több Site TAG-hez is rendelhető</li>
+        <li>Módosítás esetén az AP újracsatlakozhat a WLC-hez</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FLEX PROFILE -->
+<div class="section" id="flex-profile">
+  <div class="section-title">Flex Profile</div>
+  <div class="section-subtitle">FlexConnect módú AP-k helyi forgalomkezelési szabályait tartalmazza</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--purple)"></div>
+      <div class="card-label" style="color:var(--purple)">VLAN leképezések</div>
+      <h3>Helyi VLAN konfiguráció</h3>
+      <ul>
+        <li>Native VLAN az AP trunk portján</li>
+        <li>VLAN-Name to VLAN-ID leképezés</li>
+        <li>SSID–VLAN binding FlexConnect lokalban</li>
+        <li>DHCP override helyi szerverre</li>
+        <li>HTTP proxy bypass beállítás</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--orange)"></div>
+      <div class="card-label" style="color:var(--orange)">Standalone mód</div>
+      <h3>WLC nélküli működés</h3>
+      <ul>
+        <li>Melyik SSID-k aktívak offline módban</li>
+        <li>Helyi authentikáció (radius fallback)</li>
+        <li>CCKM / OKC roaming offline módban</li>
+        <li>Lokális VLAN switching szabályok</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--cyan)"></div>
+      <div class="card-label" style="color:var(--cyan)">Hol kerül alkalmazásra?</div>
+      <h3>Site TAG-en keresztül</h3>
+      <ul>
+        <li>A Flex Profile a <strong>Site TAG-ben</strong> kerül hivatkozásra</li>
+        <li>Csak FlexConnect AP-kra vonatkozó beállítások</li>
+        <li>Central Mode AP-k esetén a Flex Profile nincs hatással</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- RF PROFILE -->
+<div class="section" id="rf-profile">
+  <div class="section-title">RF Profile</div>
+  <div class="section-subtitle">A rádiós paramétereket definiálja sávonként (2.4 / 5 / 6 GHz)</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-accent" style="background:var(--red)"></div>
+      <div class="card-label" style="color:var(--red)">Rádió paraméterek</div>
+      <h3>RF Profile tartalma</h3>
+      <ul>
+        <li>Csatornasávszélesség (20/40/80/160 MHz)</li>
+        <li>TX Power minimum és maximum értékek</li>
+        <li>RRM DCA csatornalista</li>
+        <li>TPC threshold (teljesítményszabályozás)</li>
+        <li>Coverage Hole Detection paraméterek</li>
+        <li>Client Load Balancing</li>
+        <li>Band Select thresholds</li>
+        <li>Neighbor packets limit</li>
+        <li>802.11ax (Wi-Fi 6) BSS Color</li>
+        <li>MU-MIMO beállítások</li>
+        <li>OFDMA beállítások</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:var(--orange)"></div>
+      <div class="card-label" style="color:var(--orange)">Hol kerül alkalmazásra?</div>
+      <h3>RF TAG-en keresztül</h3>
+      <ul>
+        <li>Az RF Profile az <strong>RF TAG-ben</strong> kerül hivatkozásra</li>
+        <li>Sávonként külön RF Profile adható meg</li>
+        <li>Az RF TAG kerül az AP-hoz rendelésre</li>
+        <li>RRM globálisan is felülírhatja egyes paramétereit</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- AP KAPCSOLAT -->
+<div class="section" id="ap-kapcsolat">
+  <div class="section-title">Az AP és a TAG-ek kapcsolatrendszere</div>
+  <div class="section-subtitle">Hogyan kapja meg az AP az összes konfigurációt – a három TAG modell</div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">AP TAG-hozzárendelési modell</div>
+    <div class="ap-diagram">
+      <div class="ap-box">
+        <div class="ap-icon">📡</div>
+        <div class="ap-name">ACCESS POINT</div>
+      </div>
+      <div class="arrow-mid" style="font-size:28px;color:var(--border2)">←</div>
+      <div class="tags-col">
+        <div class="tag-item" style="border-color:var(--orange);">
+          <div class="t-label" style="color:var(--orange)">Policy TAG</div>
+          <div class="t-name">PT-campus-main</div>
+          <div class="t-points">→ WLAN Profile 1 + Policy Profile 1<br>→ WLAN Profile 2 + Policy Profile 2<br>→ WLAN Profile 3 + Policy Profile 3</div>
+        </div>
+        <div class="tag-item" style="border-color:var(--green);">
+          <div class="t-label" style="color:var(--green)">Site TAG</div>
+          <div class="t-name">ST-campus-flex</div>
+          <div class="t-points">→ AP Join Profile: AJP-default<br>→ Flex Profile: FP-campus</div>
+        </div>
+        <div class="tag-item" style="border-color:var(--red);">
+          <div class="t-label" style="color:var(--red)">RF TAG</div>
+          <div class="t-name">RFT-campus</div>
+          <div class="t-points">→ 5 GHz RF Profile: RF-5G-80MHz<br>→ 2.4 GHz RF Profile: RF-24G-20MHz</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-title">🔑 Alapszabály</div>
+    Minden AP-hoz <strong>pontosan egy-egy</strong> Policy TAG, Site TAG és RF TAG rendelhető. 
+    Ha valamely TAG-et nem rendeljük explicit, az AP a WLC-n konfigurált <strong>default TAG-et</strong> kapja. 
+    TAG módosítás esetén az AP újracsatlakozást végez, ami rövid forgalomkiesést okozhat.
+  </div>
+
+  <div class="diagram-box" style="margin-top:24px;">
+    <div class="diagram-title">Teljes profilöröklési lánc – Policy TAG példa</div>
+    <div class="chain">
+      <div class="chain-item">
+        <div class="ci-label">Policy TAG</div>
+        <div class="ci-name">PT-campus</div>
+        <div class="ci-desc">AP-hoz van rendelve, tartalmazza az összes SSID-Policy párt</div>
+      </div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-item">
+        <div class="ci-label">WLAN Profile</div>
+        <div class="ci-name">Corp-SSID</div>
+        <div class="ci-desc">SSID neve, biztonsági mód, WPA3, PMF</div>
+      </div>
+      <div class="chain-arrow">+</div>
+      <div class="chain-item">
+        <div class="ci-label">Policy Profile</div>
+        <div class="ci-name">PP-vlan10</div>
+        <div class="ci-desc">VLAN 10, QoS Platinum, ACL-Corp, Central Switching</div>
+      </div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-item">
+        <div class="ci-label">Aktív SSID az AP-n</div>
+        <div class="ci-name">Corp-SSID</div>
+        <div class="ci-desc">Kliensek csatlakozhatnak, VLAN 10-en jelennek meg</div>
+      </div>
+    </div>
+
+    <div class="chain" style="margin-top:12px;">
+      <div class="chain-item">
+        <div class="ci-label">Site TAG</div>
+        <div class="ci-name">ST-branch</div>
+        <div class="ci-desc">AP Join Profile + Flex Profile összekötése</div>
+      </div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-item">
+        <div class="ci-label">AP Join Profile</div>
+        <div class="ci-name">AJP-branch</div>
+        <div class="ci-desc">NTP, syslog, WLC IP, CAPWAP timer</div>
+      </div>
+      <div class="chain-arrow">+</div>
+      <div class="chain-item">
+        <div class="ci-label">Flex Profile</div>
+        <div class="ci-name">FP-branch</div>
+        <div class="ci-desc">Native VLAN 1, Corp-SSID→VLAN10, Guest→VLAN99</div>
+      </div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-item">
+        <div class="ci-label">AP viselkedés</div>
+        <div class="ci-name">FlexConnect</div>
+        <div class="ci-desc">Helyi forgalomkapcsolás, WAN kiesés esetén is működik</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PART 2 – CATALYST CENTER
+══════════════════════════════════════════════════════ -->
+<div class="part-header" id="cc-overview">
+  <div class="part-number">02</div>
+  <div class="part-title-block">
+    <div class="part-eyebrow">Második rész</div>
+    <div class="part-title">Catalyst Center Wireless &amp; WLC kapcsolata</div>
+    <p class="part-desc">
+      A Catalyst Center (korábbi nevén DNA Center) centralizáltan kezeli a WLC konfigurációját. 
+      Minden CC-n elvégzett wireless beállítás lefordítódik a WLC-n lévő profil- és TAG-struktúrává. 
+      Ez a rész részletesen bemutatja, hogy a CC egyes menüpontjai <em>pontosan milyen WLC objektumokat 
+      hoznak létre vagy módosítanak</em>.
+    </p>
+  </div>
+</div>
+
+<div class="callout info" style="margin-bottom:32px;">
+  <div class="callout-title">ℹ️ CC működési elve</div>
+  A Catalyst Center <strong>template-alapú provisioning</strong>-ot alkalmaz. Amikor egy beállítást 
+  elvégzel a CC-n és azt egy site-hoz rendeled, a CC a háttérben létrehozza a szükséges WLC objektumokat 
+  (WLAN Profile, Policy Profile, TAG-ek, RF Profile stb.) és NETCONF/RESTCONF protokollon keresztül 
+  tolja le a WLC-re. <strong>A CC által kezelt elemeket manuálisan ne módosítsd a WLC-n</strong> – 
+  a következő CC provisioning felülírja.
+</div>
+
+<!-- CC SSID -->
+<div class="section" id="cc-ssid">
+  <div class="section-title">SSID konfiguráció a Catalyst Centerben</div>
+  <div class="section-subtitle">Design → Network Settings → Wireless / vagy Network Profile → Add SSID</div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(0,200,224,0.15);color:var(--cyan)">CC</span>
+        <span class="cc-item-title">SSID létrehozása és alapbeállításai</span>
+        <span class="cc-item-path">Design → Network Profile → Wireless → Add SSID</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Az SSID neve, biztonsági módja és alapparaméterei a CC-n definiálhatók. 
+          A CC ezeket lefordítja és létrehozza a WLC-n a megfelelő <strong>WLAN Profile</strong>-t, 
+          majd hozzárendeli a szükséges <strong>Policy Profile</strong>-t.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ WLAN Profile (WLC)</div>
+            <div class="ir-effect">CC létrehozza az SSID nevével. Tartalmazza a biztonsági módot, WPA2/WPA3, PSK vagy 802.1X beállítást, PMF konfigurációt, band steering jelölőt.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile (WLC)</div>
+            <div class="ir-effect">CC létrehozza a VLAN és switching mód beállításával. Central/Local switching, DHCP mód, QoS, AAA override belállítások kerülnek ide.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ Policy TAG (WLC)</div>
+            <div class="ir-effect">Az SSID bekerül a site-hoz tartozó Policy TAG-be mint WLAN–Policy Profile pár. Amennyiben a Policy TAG még nem létezik, a CC létrehozza.</div>
+          </div>
+          <div class="impact-row low">
+            <div class="ir-target">→ AAA konfiguráció (WLC)</div>
+            <div class="ir-effect">802.1X SSID esetén a CC bekonfigurálja a WLC-n az AAA szerverlistát és a RADIUS attribútumokat a hitelesítési profilban.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(0,200,224,0.15);color:var(--cyan)">CC</span>
+        <span class="cc-item-title">SSID biztonsági beállítások (WPA2/WPA3/802.1X)</span>
+        <span class="cc-item-path">SSID → Security Settings</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Az SSID biztonsági módja meghatározza a WLC-n létrejövő WLAN Profile security konfigurációját.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ WLAN Profile – Security</div>
+            <div class="ir-effect">WPA2 Personal: PSK beállítás. WPA3: SAE. 802.1X: EAP módok, RADIUS hivatkozás. PMF: disabled/optional/required. Fast Transition (802.11r) be/ki.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ AAA Policy</div>
+            <div class="ir-effect">802.1X esetén a CC bekonfigurálja az Authentication és Accounting Policy-t a WLC-n, hivatkozva a Design-ban megadott RADIUS szerverekre.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(0,200,224,0.15);color:var(--cyan)">CC</span>
+        <span class="cc-item-title">SSID VLAN és switching mód</span>
+        <span class="cc-item-path">SSID → VLAN / Switching</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A VLAN-hozzárendelés és a central vs. local switching beállítás a CC-ban közvetlenül 
+          a Policy Profile-t befolyásolja.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile – VLAN</div>
+            <div class="ir-effect">A megadott VLAN ID vagy VLAN Name bekerül a Policy Profile-ba. FlexConnect esetén a VLAN a Flex Profile VLAN–SSID mappingjébe is bekerül.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile – Switching</div>
+            <div class="ir-effect">Central Switching: forgalom a WLC-re tunnelezve. Local Switching (FlexConnect): forgalom az AP-n helyben kapcsolva. Ez beállítja a Policy Profile central_switching paraméterét.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ Flex Profile (ha Flex)</div>
+            <div class="ir-effect">Local switching esetén az SSID–VLAN binding bekerül a Flex Profile-ba is, biztosítva az offline működést.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(0,200,224,0.15);color:var(--cyan)">CC</span>
+        <span class="cc-item-title">Fast Lane / QoS beállítások</span>
+        <span class="cc-item-path">SSID → Fast Lane / QoS</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A Fastlane (Apple QoS) és az általános QoS jelölők a Policy Profile QoS paramétereit befolyásolják.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile – QoS</div>
+            <div class="ir-effect">Upstream és downstream SSID-szintű QoS policy hozzárendelés. Fastlane bekapcsolva: Apple-specifikus DSCP jelölési szabályok aktiválódnak a Policy Profile-ban.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CC NETWORK PROFILE -->
+<div class="section" id="cc-netprofile">
+  <div class="section-title">Network Profile (Wireless)</div>
+  <div class="section-subtitle">Design → Network Profiles → Wireless – a legfontosabb CC elem, ami Policy TAG-et generál</div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚡ Kulcskapcsolat</div>
+    A Network Profile a CC wireless konfigurációjának <strong>legfontosabb összekötő eleme</strong>. 
+    Amikor egy Network Profile-ban SSID-ket adsz hozzá és site-okhoz rendeled a profilt, 
+    a CC <strong>automatikusan létrehozza a Policy TAG-et</strong> a WLC-n, és az AP-khoz rendeli 
+    a site hierarchia alapján.
+  </div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(245,166,35,0.15);color:var(--orange)">CORE</span>
+        <span class="cc-item-title">Network Profile → SSID hozzáadása</span>
+        <span class="cc-item-path">Design → Network Profiles → Wireless → Add SSID</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Amikor egy meglévő SSID-t hozzáadsz egy Network Profile-hoz, az adott SSID 
+          (WLAN Profile + Policy Profile pár) bekerül a Network Profile-hoz tartozó 
+          <strong>Policy TAG</strong>-be. A Network Profile lényegében a Policy TAG szülőobjektuma a CC-ban.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy TAG (WLC)</div>
+            <div class="ir-effect">A Network Profile neve alapján CC létrehoz vagy frissít egy Policy TAG-et a WLC-n. Minden hozzáadott SSID bekerül WLAN–Policy párként ebbe a Policy TAG-be.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ WLAN Profile (WLC)</div>
+            <div class="ir-effect">Ha még nem létezik, CC létrehozza a WLAN Profile-t az SSID definíciója alapján.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile (WLC)</div>
+            <div class="ir-effect">Ha még nem létezik, CC létrehozza a Policy Profile-t a VLAN, QoS és switching beállítások alapján.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(245,166,35,0.15);color:var(--orange)">CORE</span>
+        <span class="cc-item-title">Network Profile → Site hozzárendelés</span>
+        <span class="cc-item-path">Design → Network Profiles → Wireless → Assign Sites</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          <strong>Ez az egyik legfontosabb beállítás.</strong> Amikor egy Network Profile-t egy site-hoz 
+          (terület, épület, emelet) rendelsz, a CC meghatározza, hogy az adott site-ban lévő AP-k 
+          melyik Policy TAG-et kapják. Provision után a site-ban lévő összes AP-ra rákerül a Policy TAG.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy TAG (WLC)</div>
+            <div class="ir-effect">A site-hoz tartozó AP-k megkapják a Network Profile-hoz tartozó Policy TAG-et. Az AP tag policy parancs végrehajtódik a WLC-n minden érintett AP-ra.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG (WLC)</div>
+            <div class="ir-effect">A CC site hierarchia alapján létrehoz vagy frissít egy Site TAG-et is. A site neve alapján kerül elnevezésre (pl. "ST-&lt;sitename&gt;"). Az AP-k ezt is megkapják.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ AP Join Profile (WLC)</div>
+            <div class="ir-effect">Ha a site-hoz AP Join Profile van rendelve, az a Site TAG-en keresztül alkalmazódik az adott site AP-jaira.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ Flex Profile (WLC)</div>
+            <div class="ir-effect">FlexConnect site esetén a CC létrehoz egy Flex Profile-t és beilleszti a Site TAG-be. A helyi VLAN–SSID mappingeket is feltölti.</div>
+          </div>
+          <div class="impact-row low">
+            <div class="ir-target">→ RF TAG (WLC)</div>
+            <div class="ir-effect">Ha a site-hoz RF Profile van rendelve a CC-ban, az RF TAG is létrejön és az AP-khoz kerül.</div>
+          </div>
+        </div>
+        <div class="callout warn" style="margin-top:16px;">
+          <div class="callout-title">⚠️ Fontos</div>
+          Ha egy site-ot <strong>kiveszel</strong> egy Network Profile-ból, a CC a következő provision során 
+          <strong>eltávolítja</strong> a Policy TAG-et az adott site AP-jairól, és az SSID-k eltűnnek azokról az AP-król.
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(0,200,224,0.15);color:var(--cyan)">CC</span>
+        <span class="cc-item-title">Network Profile – Interface/VLAN Group</span>
+        <span class="cc-item-path">Network Profile → SSID → Interface</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A Network Profile-ban az SSID-khez rendelt interfész/VLAN csoport határozza meg, 
+          hogy Central mode esetén melyik VLAN-ra kerülnek a kliensek a WLC-n.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile – VLAN</div>
+            <div class="ir-effect">A kiválasztott interfész neve (pl. "vlan10") bekerül a Policy Profile VLAN mezőjébe. A WLC-n léteznie kell ennek az interfésznek/SVI-nak.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CC RF PROFILE -->
+<div class="section" id="cc-rfprofile">
+  <div class="section-title">RF Profile a Catalyst Centerben</div>
+  <div class="section-subtitle">Design → Network Settings → Wireless → RF Profile</div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(224,92,92,0.15);color:var(--red)">RF</span>
+        <span class="cc-item-title">RF Profile létrehozása</span>
+        <span class="cc-item-path">Design → Network Settings → Wireless → RF Profiles</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Az RF Profile a CC-ban definiálja a rádiós paramétereket. Provision után a CC létrehozza 
+          a megfelelő <strong>RF Profile-t és RF TAG-et</strong> a WLC-n, és az AP-khoz rendeli.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ RF Profile (WLC)</div>
+            <div class="ir-effect">CC létrehozza a WLC-n az RF Profile-t azonos névvel. Beállítja a csatornasávszélességet (20/40/80 MHz), TX power min/max értékeket, DCA csatornalistát, TPC threshold-ot.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ RF TAG (WLC)</div>
+            <div class="ir-effect">CC létrehoz egy RF TAG-et, amely hivatkozik a 2.4GHz és 5GHz RF Profile-okra. Amennyiben a site-hoz RF Profile van rendelve, ez a RF TAG kerül az AP-khoz.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ AP rádió konfiguráció</div>
+            <div class="ir-effect">Az AP-k RF TAG-jükön keresztül veszik fel az RF Profile beállításait. Befolyásolja az aktív csatornákat, a kisugárzott teljesítményt és az RRM viselkedését.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(224,92,92,0.15);color:var(--red)">RF</span>
+        <span class="cc-item-title">RF Profile rendelése site-hoz</span>
+        <span class="cc-item-path">Network Profile → RF Profile hozzárendelés</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Ha a Network Profile-ban vagy a site beállításaiban megadsz egy RF Profile-t, 
+          a CC a provisioningkor az adott site AP-jain beállítja az RF TAG-et.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ RF TAG (WLC)</div>
+            <div class="ir-effect">A site-ban lévő AP-k megkapják az RF TAG-et, amely hivatkozik a beállított RF Profile-okra (sávonként külön).</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ RRM viselkedés</div>
+            <div class="ir-effect">Az RF Profile korlátai érvényesülnek az RRM automatikus csatorna- és teljesítmény-vezérlésre is. Ha a profile szűkíti a csatornalistát, az RRM csak abból választhat.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CC AP JOIN PROFILE -->
+<div class="section" id="cc-apjoin">
+  <div class="section-title">AP Join Profile a Catalyst Centerben</div>
+  <div class="section-subtitle">Design → Network Settings → Wireless → AP Profiles</div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(47,214,122,0.15);color:var(--green)">AP</span>
+        <span class="cc-item-title">AP Profile (Join Profile) beállítások</span>
+        <span class="cc-item-path">Design → Network Settings → Wireless → AP Profiles</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A CC-ban az "AP Profile" az IOS-XE WLC AP Join Profile-jának felel meg. 
+          Provision után ez a Site TAG-en keresztül kerül az AP-khoz.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ AP Join Profile (WLC)</div>
+            <div class="ir-effect">CC létrehozza vagy frissíti a WLC AP Join Profile-t. Tartalmazza az NTP szervert, syslog szervert, SSH/Telnet hozzáférési beállításokat, CAPWAP timer értékeket, LED mód beállítást.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG (WLC)</div>
+            <div class="ir-effect">Az AP Join Profile hivatkozás bekerül a site-hoz tartozó Site TAG-be. A site AP-jai a Site TAG-en keresztül veszik fel az AP Join Profile beállításait.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ AP-szintű konfiguráció</div>
+            <div class="ir-effect">NTP szinkronizáció, syslog küldés, SSH hozzáférés elérhetősége – ezeket az AP Join Profile definiálja, amit az AP a Site TAG-jén keresztül kap meg.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CC FLEXCONNECT -->
+<div class="section" id="cc-flex">
+  <div class="section-title">FlexConnect beállítások a Catalyst Centerben</div>
+  <div class="section-subtitle">Network Profile → FlexConnect / Design → Network Settings → Wireless</div>
+
+  <div class="callout note">
+    <div class="callout-title">📎 Előfeltétel</div>
+    FlexConnect (Autonomous / Branch) módhoz a Network Profile-ban a <strong>Flex</strong> kapcsolási módot 
+    kell beállítani az SSID-nél (Local Switching). Ellenkező esetben a CC Central mode-ban konfigurálja 
+    az AP-kat, és nem jön létre Flex Profile a WLC-n.
+  </div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(155,114,232,0.15);color:var(--purple)">FLEX</span>
+        <span class="cc-item-title">FlexConnect SSID – Local Switching</span>
+        <span class="cc-item-path">Network Profile → SSID → Local Switching engedélyezése</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Ha egy SSID-nél Local Switching módot választasz, a CC FlexConnect beállításokat 
+          generál mind a Policy Profile-ban, mind a Flex Profile-ban.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile (WLC)</div>
+            <div class="ir-effect">Central switching = disabled, Local switching = enabled. Central DHCP = disabled. Ezek a beállítások érvényesítik, hogy a kliensforgalom az AP-n helyben kapcsolódik.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Flex Profile (WLC)</div>
+            <div class="ir-effect">CC létrehozza a Flex Profile-t és beilleszti a VLAN–SSID mapping bejegyzést. A Flex Profile bekerül a Site TAG-be is.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG (WLC)</div>
+            <div class="ir-effect">A site-hoz tartozó Site TAG-be bekerül a Flex Profile hivatkozás. Csak így lesz az AP FlexConnect módban.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(155,114,232,0.15);color:var(--purple)">FLEX</span>
+        <span class="cc-item-title">Native VLAN és VLAN-leképezés (Flex)</span>
+        <span class="cc-item-path">Network Profile → FlexConnect Settings</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A FlexConnect native VLAN és a VLAN-Name to VLAN-ID leképezések közvetlenül 
+          a Flex Profile-ba kerülnek.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Flex Profile – Native VLAN</div>
+            <div class="ir-effect">A megadott Native VLAN ID bekerül a Flex Profile native_vlan paraméterébe. Ez határozza meg az AP trunk portjának natív VLAN-ját.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Flex Profile – VLAN mapping</div>
+            <div class="ir-effect">Az SSID neve és a hozzá rendelt lokális VLAN ID páronként kerülnek be a Flex Profile VLAN–SSID mapping táblájába.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CC PROVISION HATÁSOK -->
+<div class="section" id="cc-provision">
+  <div class="section-title">Provision folyamat és hatása a WLC-re</div>
+  <div class="section-subtitle">Provision → Devices → Wireless Controller / AP-k provisionálása</div>
+
+  <div class="cc-mapping">
+    <div class="cc-item open">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(74,144,226,0.15);color:var(--blue)">PROV</span>
+        <span class="cc-item-title">WLC provisionálása</span>
+        <span class="cc-item-path">Provision → Devices → Wireless LAN Controllers</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A WLC provisionálása során a CC letölti az összes wireless profilt és globális beállítást 
+          a WLC-re NETCONF protokollon keresztül. Ezt minden nagyobb konfiguráció-változás után el kell végezni.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Összes WLAN Profile</div>
+            <div class="ir-effect">CC szinkronizálja az összes definiált SSID WLAN Profile-ját. Új SSID-k létrejönnek, töröltek eltávolítódnak, módosítottak frissülnek.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Összes Policy Profile</div>
+            <div class="ir-effect">Minden SSID-hez tartozó Policy Profile szinkronizálódik. VLAN, QoS, switching mód beállítások frissülnek.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy TAG-ek</div>
+            <div class="ir-effect">Site-hozzárendelések alapján az összes Policy TAG szinkronizálódik. A TAG-ek AP-khoz rendelése is frissül.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG-ek</div>
+            <div class="ir-effect">Site hierarchia alapján Site TAG-ek szinkronizálódnak. AP Join Profile és Flex Profile hivatkozások frissülnek.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ RF TAG-ek és RF Profile-ok</div>
+            <div class="ir-effect">RF Profile-ok és az azokat hivatkozó RF TAG-ek szinkronizálódnak. AP-khoz rendelés frissül.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ Globális WLC beállítások</div>
+            <div class="ir-effect">NTP, DNS, SNMP, syslog globális beállítások (a Design → Network Settings-ből) szinkronizálódnak a WLC-re.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(74,144,226,0.15);color:var(--blue)">PROV</span>
+        <span class="cc-item-title">AP provisionálása</span>
+        <span class="cc-item-path">Provision → Devices → Access Points</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          Az AP provisionálása során a CC az AP-t a site hierarchia szerinti pozíciójának megfelelő 
+          TAG-ekkel látja el a WLC-n keresztül.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy TAG hozzárendelés</div>
+            <div class="ir-effect">Az AP-hoz a site-jához tartozó Network Profile Policy TAG-je kerül hozzárendelésre. Ezzel aktiválódnak az SSID-k az AP-n.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG hozzárendelés</div>
+            <div class="ir-effect">Az AP site-jához tartozó Site TAG kerül hozzárendelésre. Ezzel az AP megkapja az AP Join Profile és Flex Profile beállításait.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ RF TAG hozzárendelés</div>
+            <div class="ir-effect">Ha a site-hoz van RF Profile rendelve, az AP megkapja a megfelelő RF TAG-et is.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ AP neve, elhelyezés</div>
+            <div class="ir-effect">Az AP neve (ha be van állítva a CC-ban) és a site-elhelyezés is beáll a WLC AP-konfigurációjában.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(74,144,226,0.15);color:var(--blue)">PROV</span>
+        <span class="cc-item-title">Design → Network Settings → Wireless hatások</span>
+        <span class="cc-item-path">Design → Network Settings → Wireless</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          A globális wireless beállítások (pl. AAA szerverek, DHCP szerverek, NTP) 
+          a WLC globális konfigurációját és az AP Join Profile-t befolyásolják.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ AAA szerver konfiguráció (WLC)</div>
+            <div class="ir-effect">A Design-ban megadott RADIUS/TACACS szerverek bekerülnek a WLC AAA szerverlista konfigurációjába. 802.1X SSID-k ezeket használják hitelesítéshez.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ AP Join Profile – NTP</div>
+            <div class="ir-effect">A Design-ban megadott NTP szerver(ek) bekerülnek az AP Join Profile NTP konfigurációjába, amit az AP-k a Site TAG-en keresztül kapnak meg.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ WLC globális NTP</div>
+            <div class="ir-effect">A WLC saját NTP szinkronizációját is a Design-ban megadott NTP szerver(ek) alapján konfigurálja a CC.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ WLC globális Syslog</div>
+            <div class="ir-effect">A megadott syslog szerver bekerül mind a WLC globális syslog konfigurációjába, mind az AP Join Profile syslog beállításába.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-item">
+      <div class="cc-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="cc-badge" style="background:rgba(47,214,122,0.15);color:var(--green)">FABRIC</span>
+        <span class="cc-item-title">SDA Fabric Wireless (SD-Access)</span>
+        <span class="cc-item-path">Provision → Fabric → Fabric Wireless</span>
+        <span class="cc-toggle">▶</span>
+      </div>
+      <div class="cc-item-body">
+        <p class="desc">
+          SD-Access Fabric Wireless esetén a CC extra konfigurációt generál a WLC-re 
+          az underlay és overlay hálózat integrációjához.
+        </p>
+        <div class="impacts">
+          <div class="impact-row high">
+            <div class="ir-target">→ Policy Profile – VXLAN</div>
+            <div class="ir-effect">Fabric módban a Policy Profile VXLAN encapsulationt használ. A SGT (Scalable Group Tag) és a VN (Virtual Network) beállítás is a Policy Profile-ba kerül.</div>
+          </div>
+          <div class="impact-row high">
+            <div class="ir-target">→ Site TAG – local-site</div>
+            <div class="ir-effect">Fabric site esetén a Site TAG local-site jelölője be van állítva. Ez határozza meg, hogy az AP Fabric módban működik-e.</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ Mobility konfiguráció</div>
+            <div class="ir-effect">A CC konfigurálja a WLC mobility domaint, a MAP-Server (LISP) integrációt és az anchor WLC beállításokat (ha vannak).</div>
+          </div>
+          <div class="impact-row med">
+            <div class="ir-target">→ VNID leképezés</div>
+            <div class="ir-effect">A CC beállítja az SSID–VNID (VxLAN Network ID) leképezést, amely a fabric overlay hálózathoz szükséges. Ez is a Policy Profile-ban tárolódik.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ÖSSZEFOGLALÓ MÁTRIX -->
+<div class="section" id="cc-matrix">
+  <div class="section-title">Összefoglaló: CC beállítás → WLC objektum mátrix</div>
+  <div class="section-subtitle">Gyors referencia – melyik CC elem melyik WLC objektumot hozza létre/módosítja</div>
+
+  <div style="overflow-x:auto;">
+  <table class="map-table" style="min-width:700px;">
+    <thead>
+      <tr>
+        <th>Catalyst Center beállítás</th>
+        <th>CC helye</th>
+        <th>WLC objektum(ok)</th>
+        <th>Hatás leírása</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-cc">SSID definíció</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Profiles → Wireless</td>
+        <td class="td-wlc">WLAN Profile<br>Policy Profile</td>
+        <td class="td-desc">SSID neve, security, PMF → WLAN Profile. VLAN, switching, QoS → Policy Profile.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">Network Profile site hozzárendelés</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Profiles → Assign Sites</td>
+        <td class="td-wlc">Policy TAG<br>Site TAG<br>RF TAG</td>
+        <td class="td-desc">Policy TAG létrehozás + AP-khoz rendelés. Site TAG létrehozás. RF TAG AP-khoz rendelés.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">RF Profile</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → Wireless → RF</td>
+        <td class="td-wlc">RF Profile<br>RF TAG</td>
+        <td class="td-desc">Csatornasávszélesség, TX power, DCA lista → RF Profile. Site-hoz rendeléskor RF TAG generálódik és AP-khoz kerül.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">AP Profile (Join Profile)</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → Wireless → AP Profiles</td>
+        <td class="td-wlc">AP Join Profile<br>Site TAG</td>
+        <td class="td-desc">NTP, syslog, SSH, CAPWAP timer → AP Join Profile. AP Join Profile hivatkozás bekerül a Site TAG-be.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">Local Switching (SSID)</td>
+        <td class="td-desc" style="font-size:11px;">Network Profile → SSID beállítás</td>
+        <td class="td-wlc">Policy Profile<br>Flex Profile<br>Site TAG</td>
+        <td class="td-desc">Central switching=off, Local=on → Policy Profile. VLAN–SSID mapping → Flex Profile. Flex Profile hivatkozás → Site TAG.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">Native VLAN (FlexConnect)</td>
+        <td class="td-desc" style="font-size:11px;">Network Profile → FlexConnect</td>
+        <td class="td-wlc">Flex Profile</td>
+        <td class="td-desc">Native VLAN ID → Flex Profile native_vlan paraméter. AP trunk natív VLAN-ját határozza meg.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">AAA/RADIUS szerverek</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → AAA</td>
+        <td class="td-wlc">WLC AAA konfiguráció<br>WLAN Profile (auth hivatkozás)</td>
+        <td class="td-desc">RADIUS szerver listák létrejönnek a WLC-n. 802.1X SSID-k ezekre hivatkoznak a WLAN Profile-ban.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">NTP szerver</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → Network</td>
+        <td class="td-wlc">AP Join Profile<br>WLC globális NTP</td>
+        <td class="td-desc">NTP szerver kerül az AP Join Profile-ba (AP szinkron) és a WLC globális NTP konfigurációba.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">Syslog szerver</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → Network</td>
+        <td class="td-wlc">AP Join Profile<br>WLC globális syslog</td>
+        <td class="td-desc">Syslog szerver IP bekerül az AP Join Profile-ba és a WLC platform syslog konfigurációjába.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">SDA Fabric Wireless</td>
+        <td class="td-desc" style="font-size:11px;">Provision → Fabric</td>
+        <td class="td-wlc">Policy Profile (VXLAN/SGT)<br>Site TAG (local-site)<br>Mobility konfig</td>
+        <td class="td-desc">VXLAN encap, SGT, VNID → Policy Profile. local-site jelölő → Site TAG. Mobility domain + MAP Server konfig → WLC globális wireless.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">AP site hozzárendelés (floor map)</td>
+        <td class="td-desc" style="font-size:11px;">Provision → AP → Site Assignment</td>
+        <td class="td-wlc">Policy TAG (AP-szintű)<br>Site TAG (AP-szintű)<br>RF TAG (AP-szintű)</td>
+        <td class="td-desc">A site hierarchia alapján az AP megkapja a három TAG-et (policy/site/rf) a WLC-n belül.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">SSID Band (2.4/5/6 GHz)</td>
+        <td class="td-desc" style="font-size:11px;">SSID → Advanced Settings</td>
+        <td class="td-wlc">WLAN Profile<br>Policy TAG</td>
+        <td class="td-desc">Az engedélyezett sávok beállítása a WLAN Profile-ban történik. A Policy TAG WLAN–Policy párjánál is megjelenik a sávkorlátozás.</td>
+      </tr>
+      <tr>
+        <td class="td-cc">mDNS Service Policy</td>
+        <td class="td-desc" style="font-size:11px;">Design → Net. Settings → mDNS</td>
+        <td class="td-wlc">Policy Profile (mDNS)<br>WLC mDNS Gateway</td>
+        <td class="td-desc">mDNS service policy hivatkozás bekerül a Policy Profile-ba. WLC mDNS gateway konfiguráció is generálódik.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout tip" style="margin-top:28px;">
+    <div class="callout-title">✅ Összefoglalás</div>
+    A Catalyst Center lényegében egy <strong>absztrakciós réteg</strong> a WLC felett. 
+    Az összes CC wireless beállítás végső soron a WLC IOS-XE profil- és TAG-struktúrájában 
+    materializálódik. A CC a <strong>Network Profile → Site hozzárendelés</strong> műveletnél 
+    hozza létre a legtöbb WLC objektumot egyszerre (Policy TAG, Site TAG, RF TAG, 
+    WLAN Profile-ok, Policy Profile-ok). 
+    <strong>Soha ne módosítsd manuálisan a CC által kezelt objektumokat a WLC-n</strong>, 
+    mivel a következő provision felülírja azokat.
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<script>
+// Smooth active state for nav items
+const sections = document.querySelectorAll('[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navItems.forEach(item => item.classList.remove('active'));
+      const activeLink = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>
